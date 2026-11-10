@@ -76,7 +76,7 @@ export default function ArtifactPanel({ artifact, onClose }) {
 
   return (
     <div className="artifact-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <article className="artifact-dialog" role="dialog" aria-modal="true" aria-labelledby="artifact-title">
+      <article className="artifact-dialog" data-world={artifact.world} role="dialog" aria-modal="true" aria-labelledby="artifact-title">
         <button className="artifact-dialog__close" type="button" onClick={onClose} ref={closeRef} aria-label="Close artifact details">×</button>
         <div className="artifact-dialog__image"><CreditedImage artifact={artifact} eager /></div>
         <div className="artifact-dialog__content">

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ArtifactPanel, { ArtifactCard } from '../components/ArtifactPanel.jsx';
 import { artifacts, worlds } from '../data/artifacts.js';
 import { requestAudioEffect, requestAudioScene } from '../audio/soundEngine.js';
@@ -14,6 +14,15 @@ function WorldNavigation({ activeWorld }) {
 
 function WorldChapter({ world, motionAllowed }) {
   const chapterRef = useRef(null);
+  const planetViewerRef = useRef(null);
+
+  useEffect(() => {
+    const viewer = planetViewerRef.current;
+    if (viewer && viewer.getAttribute('src') !== world.model) {
+      viewer.setAttribute('src', world.model);
+    }
+    viewer?.toggleAttribute('auto-rotate', motionAllowed);
+  }, [world.model, motionAllowed]);
 
   useEffect(() => {
     if (!motionAllowed || !('IntersectionObserver' in window)) return undefined;
@@ -46,7 +55,7 @@ function WorldChapter({ world, motionAllowed }) {
         </div>
         <div className="world-chapter__planet" aria-label={`${world.name} globe`}>
           <span className="world-chapter__planet-glow" aria-hidden="true" />
-          <model-viewer src={world.model} alt={`${world.modelAlt}. Drag to rotate; scroll or pinch to zoom.`} loading="lazy" reveal="auto" shadow-intensity="0.3" exposure={world.id === 'moon' ? '0.88' : '0.78'} environment-image="neutral" camera-controls touch-action="pan-y" interaction-prompt="auto" interaction-prompt-style="basic" interaction-prompt-threshold="2500" auto-rotate-delay="1800" rotation-per-second="0.55deg" min-camera-orbit="auto auto 85%" max-camera-orbit="auto auto 250%" {...(motionAllowed ? { 'auto-rotate': '' } : {})} />
+          <model-viewer ref={planetViewerRef} alt={`${world.modelAlt}. Drag to rotate; scroll or pinch to zoom.`} loading="lazy" reveal="auto" shadow-intensity="0.3" exposure={world.id === 'moon' ? '0.88' : '0.78'} environment-image="neutral" camera-controls touch-action="pan-y" interaction-prompt="auto" interaction-prompt-style="basic" interaction-prompt-threshold="2500" auto-rotate-delay="1800" rotation-per-second="0.55deg" min-camera-orbit="auto auto 85%" max-camera-orbit="auto auto 250%" {...(motionAllowed ? { 'auto-rotate': '' } : {})} />
           <span className="world-chapter__planet-credit">NASA PLANETARY MODEL · CONTEXT ONLY</span>
         </div>
       </div>
@@ -120,7 +129,18 @@ export default function ExplorePage({ routeHash }) {
   const selectedArtifact = parsedId ? artifacts[parsedId] : null;
   const routeWorld = routeHash.startsWith('#mars') || routeHash === '#credits' ? 'mars' : 'moon';
   const activeWorld = selectedArtifact?.world ?? visibleWorld ?? routeWorld;
-  const motionAllowed = useMemo(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
+  const [motionAllowed, setMotionAllowed] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  useEffect(() => {
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePreference = () => setMotionAllowed(!preference.matches);
+    if (preference.addEventListener) preference.addEventListener('change', updatePreference);
+    else preference.addListener(updatePreference);
+    return () => {
+      if (preference.removeEventListener) preference.removeEventListener('change', updatePreference);
+      else preference.removeListener(updatePreference);
+    };
+  }, []);
   const closePanel = useCallback(() => {
     requestAudioEffect('artifact-close');
     window.location.hash = `#${selectedArtifact?.world ?? activeWorld}`;

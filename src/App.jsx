@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import ExplorePage from './pages/ExplorePage.jsx';
 import AudioController from './components/AudioController.jsx';
@@ -14,6 +14,23 @@ const stars = Array.from({ length: 72 }, (_, i) => ({
 export default function App() {
   const scene = useRef(null);
   const [routeHash, setRouteHash] = useState(() => window.location.hash || '#home');
+  const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const setMoonViewerRef = useCallback((viewer) => {
+    if (!viewer) return;
+    viewer.setAttribute('src', '/models/planets/moon_home.glb');
+    viewer.toggleAttribute('auto-rotate', !reducedMotion);
+  }, [reducedMotion]);
+
+  useEffect(() => {
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePreference = () => setReducedMotion(preference.matches);
+    if (preference.addEventListener) preference.addEventListener('change', updatePreference);
+    else preference.addListener(updatePreference);
+    return () => {
+      if (preference.removeEventListener) preference.removeEventListener('change', updatePreference);
+      else preference.removeListener(updatePreference);
+    };
+  }, []);
 
   useEffect(() => {
     const syncRoute = () => setRouteHash(window.location.hash || '#home');
@@ -49,9 +66,8 @@ export default function App() {
     const el = scene.current;
     if (!el) return;
     if (routeHash === '#home') window.scrollTo(0, 0);
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const moon = el.querySelector('model-viewer');
-    if (moon && !reducedMotion) moon.setAttribute('auto-rotate', '');
+    moon?.toggleAttribute('auto-rotate', !reducedMotion);
     if (reducedMotion) return;
     const move = (event) => {
       const x = (event.clientX / window.innerWidth - 0.5) * 2;
@@ -61,7 +77,7 @@ export default function App() {
     };
     window.addEventListener('pointermove', move, { passive: true });
     return () => window.removeEventListener('pointermove', move);
-  }, [routeHash]);
+  }, [routeHash, reducedMotion]);
 
   const audioScene = routeHash.startsWith('#artifact/')
     ? (routeHash.endsWith('insight') ? 'insight' : routeHash.endsWith('apollo-11-reflector') ? 'apollo' : routeHash.includes('mars-') || ['sojourner', 'phoenix'].some((id) => routeHash.endsWith(id)) ? 'mars' : 'moon')
@@ -81,7 +97,7 @@ export default function App() {
       <div className="lunar-foreground" aria-hidden="true"><span className="ridge ridge--back" /><span className="ridge ridge--front" /><i className="foreground-rock rock--one" /><i className="foreground-rock rock--two" /><i className="foreground-rock rock--three" /></div>
       <div className="planet-wrap" aria-hidden="true">
         <div className="planet-glow" />
-        <model-viewer className="moon-model" src="/models/planets/moon_home.glb" alt="NASA lunar globe rendered in the night sky" loading="eager" reveal="auto" shadow-intensity="0" exposure="0.94" environment-image="neutral" camera-target="0m 0m 0m" disable-zoom disable-pan interaction-prompt="none" rotation-per-second="1deg" aria-hidden="true" inert />
+        <model-viewer ref={setMoonViewerRef} className="moon-model" alt="NASA lunar globe rendered in the night sky" loading="eager" reveal="auto" shadow-intensity="0" exposure="0.94" environment-image="neutral" camera-target="0m 0m 0m" disable-zoom disable-pan interaction-prompt="none" rotation-per-second="1deg" aria-hidden="true" inert />
         <div className="planet-shadow" />
       </div>
 
