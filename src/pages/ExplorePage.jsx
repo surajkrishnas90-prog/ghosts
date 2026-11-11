@@ -15,13 +15,27 @@ function WorldNavigation({ activeWorld }) {
 function WorldChapter({ world, motionAllowed }) {
   const chapterRef = useRef(null);
   const planetViewerRef = useRef(null);
+  const [planetFallback, setPlanetFallback] = useState(false);
 
   useEffect(() => {
     const viewer = planetViewerRef.current;
-    if (viewer && viewer.getAttribute('src') !== world.model) {
-      viewer.setAttribute('src', world.model);
+    if (!viewer) return undefined;
+    const onLoad = () => setPlanetFallback(false);
+    const onError = () => setPlanetFallback(true);
+    viewer.addEventListener('load', onLoad);
+    viewer.addEventListener('error', onError);
+    try {
+      const canvas = document.createElement('canvas');
+      if (!(canvas.getContext('webgl2') || canvas.getContext('webgl'))) setPlanetFallback(true);
+    } catch {
+      setPlanetFallback(true);
     }
+    if (viewer.getAttribute('src') !== world.model) viewer.setAttribute('src', world.model);
     viewer?.toggleAttribute('auto-rotate', motionAllowed);
+    return () => {
+      viewer.removeEventListener('load', onLoad);
+      viewer.removeEventListener('error', onError);
+    };
   }, [world.model, motionAllowed]);
 
   useEffect(() => {
@@ -53,9 +67,10 @@ function WorldChapter({ world, motionAllowed }) {
           <p className="world-chapter__intro">{world.introduction}</p>
           <a className="world-chapter__scroll" href={`#${world.id}-collection`}><span aria-hidden="true">↓</span> ENTER THE COLLECTION</a>
         </div>
-        <div className="world-chapter__planet" aria-label={`${world.name} globe`}>
+        <div className={`world-chapter__planet${planetFallback ? ' is-fallback' : ''}`} aria-label={`${world.name} globe`}>
           <span className="world-chapter__planet-glow" aria-hidden="true" />
-          <model-viewer ref={planetViewerRef} alt={`${world.modelAlt}. Drag to rotate; scroll or pinch to zoom.`} loading="lazy" reveal="auto" shadow-intensity="0.3" exposure={world.id === 'moon' ? '0.88' : '0.78'} environment-image="neutral" camera-controls touch-action="pan-y" interaction-prompt="auto" interaction-prompt-style="basic" interaction-prompt-threshold="2500" auto-rotate-delay="1800" rotation-per-second="0.55deg" min-camera-orbit="auto auto 85%" max-camera-orbit="auto auto 250%" {...(motionAllowed ? { 'auto-rotate': '' } : {})} />
+          <span className="world-chapter__planet-fallback" aria-hidden="true"><span>{world.name.toUpperCase()} GLOBE · 3D UNAVAILABLE</span></span>
+          <model-viewer ref={planetViewerRef} alt={`${world.modelAlt}. Drag to rotate; scroll or pinch to zoom.`} loading="lazy" reveal="auto" shadow-intensity="0.3" exposure={world.id === 'moon' ? '0.88' : '0.78'} environment-image="neutral" camera-controls touch-action="pan-y" zoom-sensitivity="0.25" interaction-prompt="auto" interaction-prompt-style="basic" interaction-prompt-threshold="2500" auto-rotate-delay="1800" rotation-per-second="0.55deg" camera-orbit="0deg 75deg 155%" min-camera-orbit="auto auto 145%" max-camera-orbit="auto auto 250%" min-field-of-view="40deg" {...(world.id === 'mars' ? { 'max-field-of-view': '60deg' } : {})} {...(motionAllowed ? { 'auto-rotate': '' } : {})} />
           <span className="world-chapter__planet-credit">NASA PLANETARY MODEL · CONTEXT ONLY</span>
         </div>
       </div>
@@ -83,12 +98,18 @@ function WorldChapter({ world, motionAllowed }) {
         </section>
       </div>
       {world.id === 'moon' ? (
-        <div className="world-chapter__end world-chapter__end--transition" data-scroll-reveal>
-          <span aria-hidden="true" />
-          <a href="#mars">LUNAR TRANSMISSION COMPLETE <b>·</b> CONTINUE TO MARS <span aria-hidden="true">↓</span></a>
-          <span aria-hidden="true" />
-        </div>
-      ) : <div className="world-chapter__end" aria-hidden="true"><span /> END OF MARS TRANSMISSION <span /></div>}
+        <section className="world-chapter__end world-chapter__end--transition" data-scroll-reveal aria-labelledby="next-frontier-title">
+          <p className="explore-eyebrow">THE NEXT FRONTIER</p>
+          <h2 id="next-frontier-title">Continue your journey to Mars.</h2>
+          <a href="#mars" className="chapter-end-link">EXPLORE MARS <span aria-hidden="true">→</span></a>
+        </section>
+      ) : (
+        <section className="world-chapter__end world-chapter__end--mars" aria-labelledby="mars-ending-title">
+          <p className="explore-eyebrow">MARS TRANSMISSION COMPLETE</p>
+          <h2 id="mars-ending-title">The record continues on Earth.</h2>
+          <div><a href="#moon" className="chapter-end-link">RETURN TO THE MOON <span aria-hidden="true">←</span></a><a href="#credits" className="chapter-end-link chapter-end-link--quiet">CREDITS & SOURCES <span aria-hidden="true">↗</span></a></div>
+        </section>
+      )}
     </section>
   );
 }
@@ -123,12 +144,10 @@ function CreditsSection() {
 }
 
 export default function ExplorePage({ routeHash }) {
-  const pendingWorldRef = useRef(null);
-  const [visibleWorld, setVisibleWorld] = useState(null);
   const parsedId = routeHash.startsWith('#artifact/') ? routeHash.slice('#artifact/'.length) : null;
   const selectedArtifact = parsedId ? artifacts[parsedId] : null;
-  const routeWorld = routeHash.startsWith('#mars') || routeHash === '#credits' ? 'mars' : 'moon';
-  const activeWorld = selectedArtifact?.world ?? visibleWorld ?? routeWorld;
+  const routeWorld = selectedArtifact?.world ?? (routeHash.startsWith('#mars') || routeHash === '#credits' ? 'mars' : 'moon');
+  const activeWorld = routeWorld;
   const [motionAllowed, setMotionAllowed] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   useEffect(() => {
@@ -147,51 +166,11 @@ export default function ExplorePage({ routeHash }) {
   }, [activeWorld, selectedArtifact?.world]);
 
   useEffect(() => {
-    const destination = selectedArtifact?.world ?? routeWorld;
-    pendingWorldRef.current = destination;
-    setVisibleWorld(destination);
-  }, [routeHash, routeWorld, selectedArtifact?.world]);
-
-  useEffect(() => {
     const audioScene = selectedArtifact?.id === 'apollo-11-reflector' ? 'apollo'
       : selectedArtifact?.id === 'insight' ? 'insight'
-        : selectedArtifact?.world ?? visibleWorld ?? routeWorld;
+        : selectedArtifact?.world ?? routeWorld;
     requestAudioScene(audioScene);
-  }, [selectedArtifact?.id, selectedArtifact?.world, visibleWorld, routeWorld]);
-
-  useEffect(() => {
-    if (!('IntersectionObserver' in window)) return undefined;
-    const chapters = document.querySelectorAll('.world-chapter');
-    let observer;
-    const updateActiveWorld = () => {
-      const viewportCenter = window.innerHeight / 2;
-      const activeChapter = [...chapters].find((chapter) => {
-        const bounds = chapter.getBoundingClientRect();
-        return bounds.top <= viewportCenter && bounds.bottom > viewportCenter;
-      });
-      if (!activeChapter) return;
-      if (pendingWorldRef.current && activeChapter.id !== pendingWorldRef.current) return;
-      pendingWorldRef.current = null;
-      setVisibleWorld(activeChapter.id);
-    };
-    const observeChapters = () => {
-      observer?.disconnect();
-      const bandInset = Math.round(window.innerHeight * 0.45);
-      observer = new IntersectionObserver(updateActiveWorld, {
-        threshold: 0,
-        rootMargin: `-${bandInset}px 0px -${bandInset}px 0px`,
-      });
-      chapters.forEach((chapter) => observer.observe(chapter));
-      updateActiveWorld();
-    };
-
-    observeChapters();
-    window.addEventListener('resize', observeChapters, { passive: true });
-    return () => {
-      observer?.disconnect();
-      window.removeEventListener('resize', observeChapters);
-    };
-  }, []);
+  }, [selectedArtifact?.id, selectedArtifact?.world, routeWorld]);
 
   useEffect(() => {
     const savedPosition = sessionStorage.getItem('ghosts:artifact-return-scroll');
@@ -227,8 +206,8 @@ export default function ExplorePage({ routeHash }) {
         <a href="#home" className="explore-home-link">EXIT EXPLORATION <span aria-hidden="true">↗</span></a>
       </header>
       <div className="explore-progress" aria-hidden="true"><span className="explore-progress__moon" /><span className="explore-progress__mars" /></div>
-      {Object.values(worlds).map((world) => <WorldChapter key={world.id} world={world} motionAllowed={motionAllowed} />)}
-      <CreditsSection />
+      <WorldChapter key={routeWorld} world={worlds[routeWorld]} motionAllowed={motionAllowed} />
+      {routeWorld === 'mars' && <CreditsSection />}
       <footer className="explore-footer"><span>GHOSTS OF SPACE <b>·</b> LEVENTHREE</span><a href="#home">RETURN TO THE ORBITAL VIEW ↑</a><span>NASA SOURCES LINKED THROUGHOUT</span></footer>
       {selectedArtifact && <ArtifactPanel artifact={selectedArtifact} onClose={closePanel} />}
     </main>

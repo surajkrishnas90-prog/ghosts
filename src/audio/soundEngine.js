@@ -60,7 +60,7 @@ export class SpaceSoundEngine {
     this.master.connect(context.destination);
 
     const toneBus = context.createGain();
-    toneBus.gain.value = 0.13;
+    toneBus.gain.value = 0.17;
     this.toneFilter = context.createBiquadFilter();
     this.toneFilter.type = 'lowpass';
     this.toneFilter.frequency.value = 1900;
@@ -84,7 +84,7 @@ export class SpaceSoundEngine {
     this.airFilter.type = 'lowpass';
     this.airFilter.frequency.value = profile.air;
     this.airGain = context.createGain();
-    this.airGain.gain.value = 0.16;
+    this.airGain.gain.value = 0.22;
     air.connect(this.airFilter).connect(this.airGain).connect(this.music);
     air.start();
     this.setScene(this.scene);
@@ -110,11 +110,11 @@ export class SpaceSoundEngine {
     if (!this.context || !this.prefs) return;
     const enabled = this.active && this.prefs.master && !this.prefs.muted;
     window.clearTimeout(this.suspendTimeout);
-    smooth(this.master.gain, enabled ? this.prefs.masterVolume : 0, this.context, 0.18);
-    smooth(this.music.gain, enabled && this.prefs.music ? this.prefs.musicVolume : 0, this.context, 0.35);
-    smooth(this.effects.gain, enabled && this.prefs.effects ? this.prefs.effectsVolume : 0, this.context, 0.08);
+    smooth(this.master.gain, enabled ? this.prefs.masterVolume : 0, this.context, enabled ? 0.32 : 0.035);
+    smooth(this.music.gain, enabled && this.prefs.music ? this.prefs.musicVolume : 0, this.context, enabled ? 0.42 : 0.035);
+    smooth(this.effects.gain, enabled && this.prefs.effects ? this.prefs.effectsVolume : 0, this.context, enabled ? 0.16 : 0.025);
     // Keep the engine quiet between chapters without creating overlapping tracks.
-    if (this.airGain) smooth(this.airGain.gain, this.scene === 'mars' || this.scene === 'insight' ? 0.18 : 0.12, this.context, 0.8);
+    if (this.airGain) smooth(this.airGain.gain, this.scene === 'mars' || this.scene === 'insight' ? 0.24 : 0.20, this.context, 0.8);
     if (!enabled && this.context.state !== 'suspended') {
       this.suspendTimeout = window.setTimeout(() => {
         if (!this.active || !this.prefs?.master || this.prefs.muted) this.context?.suspend();

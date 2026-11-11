@@ -95,15 +95,18 @@ export default function App() {
       <div className="nebula nebula--two" aria-hidden="true" />
       <div className="horizon" aria-hidden="true" />
       <div className="lunar-foreground" aria-hidden="true"><span className="ridge ridge--back" /><span className="ridge ridge--front" /><i className="foreground-rock rock--one" /><i className="foreground-rock rock--two" /><i className="foreground-rock rock--three" /></div>
-      <div className="planet-wrap" aria-hidden="true">
-        <div className="planet-glow" />
-        <model-viewer ref={setMoonViewerRef} className="moon-model" alt="NASA lunar globe rendered in the night sky" loading="eager" reveal="auto" shadow-intensity="0" exposure="0.94" environment-image="neutral" camera-target="0m 0m 0m" disable-zoom disable-pan interaction-prompt="none" rotation-per-second="1deg" aria-hidden="true" inert />
-        <div className="planet-shadow" />
+      <div className="hero-scene" aria-label="Rotating Moon in deep space">
+        <div className="planet-wrap" aria-hidden="true">
+          <div className="planet-glow" />
+          <model-viewer ref={setMoonViewerRef} className="moon-model" alt="NASA lunar globe rendered in the night sky" loading="eager" reveal="auto" shadow-intensity="0" exposure="0.94" environment-image="neutral" camera-target="0m 0m 0m" disable-zoom disable-pan interaction-prompt="none" rotation-per-second="1deg" aria-hidden="true" inert />
+          <div className="planet-shadow" />
+        </div>
+        <aside className="planet-label" aria-label="Featured destination"><span className="label-index">01</span><span className="label-rule" /><span><small>FEATURED WORLD</small><b>THE MOON</b></span></aside>
       </div>
 
       <header className="topbar">
         <a className="wordmark" href="#home" aria-label="Ghosts of Space home"><span className="wordmark-mark">G</span><span>GHOSTS <b>OF</b> SPACE</span></a>
-        <div className="topbar-right"><span className="signal-dot" /> DIGITAL SPACE MUSEUM <span className="topbar-divider">/</span> LEVENTHREE</div>
+        <div className="topbar-right"><span className="signal-dot" /><span className="topbar-project">DIGITAL SPACE MUSEUM</span><span className="topbar-divider">/</span><span className="topbar-team">LEVENTHREE</span></div>
       </header>
 
       <section className="hero-copy">
@@ -115,8 +118,6 @@ export default function App() {
         <div className="scroll-cue"><span className="scroll-line" /> SCROLL TO DISCOVER</div>
       </section>
 
-      <aside className="planet-label" aria-label="Featured destination"><span className="label-index">01</span><span className="label-rule" /><span><small>FEATURED WORLD</small><b>THE MOON</b></span></aside>
-      <div className="coordinates">0° 40′ 26.69″ N <span>·</span> 23° 28′ 22.69″ E</div>
       <footer className="hero-footer"><span>NASA SPACE APPS CHALLENGE 2026</span><span className="footer-center">DISCOVER WHAT REMAINS</span><span>AN EXPLORATION BY <b>LEVENTHREE</b></span></footer>
     </main>
     <AudioController scene="home" />
