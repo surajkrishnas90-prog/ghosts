@@ -84,7 +84,7 @@ export default function App() {
     : routeHash.startsWith('#mars') || routeHash === '#credits' ? 'mars' : routeHash.startsWith('#moon') ? 'moon' : 'home';
 
   if (routeHash === '#moon' || routeHash.startsWith('#moon-') || routeHash === '#mars' || routeHash.startsWith('#mars-') || routeHash === '#credits' || routeHash.startsWith('#artifact/')) {
-    return <><ExplorePage routeHash={routeHash} /><AudioController scene={audioScene} /></>;
+    return <ExplorePage routeHash={routeHash} audioScene={audioScene} />;
   }
 
   return (
@@ -106,7 +106,10 @@ export default function App() {
 
       <header className="topbar">
         <a className="wordmark" href="#home" aria-label="Ghosts of Space home"><span className="wordmark-mark">G</span><span>GHOSTS <b>OF</b> SPACE</span></a>
-        <div className="topbar-right"><span className="signal-dot" /><span className="topbar-project">DIGITAL SPACE MUSEUM</span><span className="topbar-divider">/</span><span className="topbar-team">LEVENTHREE</span></div>
+        <div className="topbar-actions">
+          <div className="topbar-right"><span className="signal-dot" /><span className="topbar-project">DIGITAL SPACE MUSEUM</span><span className="topbar-divider">/</span><span className="topbar-team">LEVENTHREE</span></div>
+          <AudioController scene="home" />
+        </div>
       </header>
 
       <section className="hero-copy">
@@ -120,7 +123,6 @@ export default function App() {
 
       <footer className="hero-footer"><span>NASA SPACE APPS CHALLENGE 2026</span><span className="footer-center">DISCOVER WHAT REMAINS</span><span>AN EXPLORATION BY <b>LEVENTHREE</b></span></footer>
     </main>
-    <AudioController scene="home" />
     </>
   );
 }

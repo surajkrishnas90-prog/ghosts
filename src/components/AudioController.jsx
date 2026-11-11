@@ -15,7 +15,7 @@ function readAudioPreference() {
 
 export default function AudioController({ scene = 'home' }) {
   const [requestedOn, setRequestedOn] = useState(readAudioPreference);
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(() => soundEngine.active);
   const [unavailable, setUnavailable] = useState(false);
 
   useEffect(() => {

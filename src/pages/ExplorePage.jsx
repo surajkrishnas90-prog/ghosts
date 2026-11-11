@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import ArtifactPanel, { ArtifactCard } from '../components/ArtifactPanel.jsx';
+import AudioController from '../components/AudioController.jsx';
 import { artifacts, worlds } from '../data/artifacts.js';
 import { requestAudioEffect, requestAudioScene } from '../audio/soundEngine.js';
 
@@ -143,7 +144,7 @@ function CreditsSection() {
   );
 }
 
-export default function ExplorePage({ routeHash }) {
+export default function ExplorePage({ routeHash, audioScene }) {
   const parsedId = routeHash.startsWith('#artifact/') ? routeHash.slice('#artifact/'.length) : null;
   const selectedArtifact = parsedId ? artifacts[parsedId] : null;
   const routeWorld = selectedArtifact?.world ?? (routeHash.startsWith('#mars') || routeHash === '#credits' ? 'mars' : 'moon');
@@ -203,13 +204,16 @@ export default function ExplorePage({ routeHash }) {
       <header className="explore-topbar">
         <a className="explore-wordmark" href="#home" aria-label="Return to GHOSTS OF SPACE homepage"><span className="wordmark-mark">G</span><span>GHOSTS <b>OF</b> SPACE</span></a>
         <WorldNavigation activeWorld={activeWorld} />
-        <a href="#home" className="explore-home-link">EXIT EXPLORATION <span aria-hidden="true">↗</span></a>
+        <div className="explore-header-actions">
+          <a href="#home" className="explore-home-link">EXIT EXPLORATION <span aria-hidden="true">↗</span></a>
+          {!selectedArtifact && <AudioController scene={audioScene} />}
+        </div>
       </header>
       <div className="explore-progress" aria-hidden="true"><span className="explore-progress__moon" /><span className="explore-progress__mars" /></div>
       <WorldChapter key={routeWorld} world={worlds[routeWorld]} motionAllowed={motionAllowed} />
       {routeWorld === 'mars' && <CreditsSection />}
       <footer className="explore-footer"><span>GHOSTS OF SPACE <b>·</b> LEVENTHREE</span><a href="#home">RETURN TO THE ORBITAL VIEW ↑</a><span>NASA SOURCES LINKED THROUGHOUT</span></footer>
-      {selectedArtifact && <ArtifactPanel artifact={selectedArtifact} onClose={closePanel} />}
+      {selectedArtifact && <ArtifactPanel artifact={selectedArtifact} onClose={closePanel} audioController={<AudioController scene={audioScene} />} />}
     </main>
   );
 }

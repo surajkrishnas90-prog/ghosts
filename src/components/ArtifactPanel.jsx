@@ -39,7 +39,7 @@ export function ArtifactCard({ artifact, number }) {
   );
 }
 
-export default function ArtifactPanel({ artifact, onClose }) {
+export default function ArtifactPanel({ artifact, onClose, audioController }) {
   const closeRef = useRef(null);
 
   useEffect(() => {
@@ -80,6 +80,7 @@ export default function ArtifactPanel({ artifact, onClose }) {
         <button className="artifact-dialog__close" type="button" onClick={onClose} ref={closeRef} aria-label="Close artifact details">×</button>
         <div className="artifact-dialog__image"><CreditedImage artifact={artifact} eager /></div>
         <div className="artifact-dialog__content">
+          <div className="artifact-dialog__audio">{audioController}</div>
           <p className="explore-eyebrow">{artifact.world === 'moon' ? 'LUNAR ARCHIVE' : 'MARTIAN ARCHIVE'} · {artifact.location}</p>
           <h2 id="artifact-title">{artifact.name}</h2>
           <p className="artifact-dialog__mission">{artifact.mission}<span>{artifact.date}</span></p>
