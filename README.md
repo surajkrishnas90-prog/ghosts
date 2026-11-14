@@ -22,10 +22,10 @@ No API keys, database, backend service, or paid account are needed for the curre
 
 ## Install and run locally
 
-1. Open PowerShell in this project folder:
+1. Open PowerShell in the project folder (the folder containing `package.json`):
 
    ```powershell
-   Set-Location "C:\Users\acer\Documents\Codex\2026-11-03\files-pasted-by-the-user-project"
+   Set-Location "<path-to-project>"
    ```
 
 2. Install the pinned project dependencies (first run only, or after dependency changes):
@@ -129,7 +129,7 @@ NASA content is generally usable for factual educational/informational purposes 
 
 ## Deployment
 
-The project is uploaded to the GitHub repository and configured for Vercel with `vercel.json` (`npm run build` and `dist`). Hash-based routes do not require server rewrites. The site has not been deployed on Vercel.
+The project is configured for Vercel with `vercel.json` (`npm run build` and `dist`). Hash-based routes do not require server rewrites. The site has not been deployed on Vercel.
 
 ## Current verification notes
 

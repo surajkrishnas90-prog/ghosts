@@ -16,6 +16,7 @@ function WorldNavigation({ activeWorld }) {
 function WorldChapter({ world, motionAllowed }) {
   const chapterRef = useRef(null);
   const planetViewerRef = useRef(null);
+  const zoomStateRef = useRef({ initialRadius: null, zoomed: false, lastTapAt: 0, lastTapX: 0, lastTapY: 0 });
   const [planetFallback, setPlanetFallback] = useState(false);
 
   useEffect(() => {
@@ -23,8 +24,43 @@ function WorldChapter({ world, motionAllowed }) {
     if (!viewer) return undefined;
     const onLoad = () => setPlanetFallback(false);
     const onError = () => setPlanetFallback(true);
+    const captureInitialOrbit = () => {
+      const orbit = viewer.getCameraOrbit?.();
+      if (orbit && Number.isFinite(orbit.radius)) zoomStateRef.current.initialRadius = orbit.radius;
+    };
+    const toggleCenterZoom = (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const orbit = viewer.getCameraOrbit?.();
+      if (!orbit || !Number.isFinite(orbit.radius)) return;
+      const state = zoomStateRef.current;
+      if (state.initialRadius == null) state.initialRadius = orbit.radius;
+      const center = viewer.getBoundingBoxCenter?.();
+      const nextRadius = state.zoomed ? state.initialRadius : state.initialRadius * 0.9;
+      if (center) viewer.cameraTarget = `${center.x}m ${center.y}m ${center.z}m`;
+      viewer.cameraOrbit = `${orbit.theta}rad ${orbit.phi}rad ${nextRadius}m`;
+      state.zoomed = !state.zoomed;
+    };
+    const onDoubleClick = (event) => toggleCenterZoom(event);
+    const onPointerUp = (event) => {
+      if (event.pointerType !== 'touch') return;
+      const now = performance.now();
+      const state = zoomStateRef.current;
+      const closeTap = Math.hypot(event.clientX - state.lastTapX, event.clientY - state.lastTapY) < 28;
+      if (now - state.lastTapAt < 340 && closeTap) {
+        toggleCenterZoom(event);
+        state.lastTapAt = 0;
+      } else {
+        state.lastTapAt = now;
+        state.lastTapX = event.clientX;
+        state.lastTapY = event.clientY;
+      }
+    };
     viewer.addEventListener('load', onLoad);
     viewer.addEventListener('error', onError);
+    viewer.addEventListener('load', captureInitialOrbit);
+    viewer.addEventListener('dblclick', onDoubleClick, true);
+    viewer.addEventListener('pointerup', onPointerUp, true);
     try {
       const canvas = document.createElement('canvas');
       if (!(canvas.getContext('webgl2') || canvas.getContext('webgl'))) setPlanetFallback(true);
@@ -36,6 +72,9 @@ function WorldChapter({ world, motionAllowed }) {
     return () => {
       viewer.removeEventListener('load', onLoad);
       viewer.removeEventListener('error', onError);
+      viewer.removeEventListener('load', captureInitialOrbit);
+      viewer.removeEventListener('dblclick', onDoubleClick, true);
+      viewer.removeEventListener('pointerup', onPointerUp, true);
     };
   }, [world.model, motionAllowed]);
 
@@ -71,7 +110,7 @@ function WorldChapter({ world, motionAllowed }) {
         <div className={`world-chapter__planet${planetFallback ? ' is-fallback' : ''}`} aria-label={`${world.name} globe`}>
           <span className="world-chapter__planet-glow" aria-hidden="true" />
           <span className="world-chapter__planet-fallback" aria-hidden="true"><span>{world.name.toUpperCase()} GLOBE · 3D UNAVAILABLE</span></span>
-          <model-viewer ref={planetViewerRef} alt={`${world.modelAlt}. Drag to rotate; scroll or pinch to zoom.`} loading="lazy" reveal="auto" shadow-intensity="0.3" exposure={world.id === 'moon' ? '0.88' : '0.78'} environment-image="neutral" camera-controls touch-action="pan-y" zoom-sensitivity="0.25" interaction-prompt="auto" interaction-prompt-style="basic" interaction-prompt-threshold="2500" auto-rotate-delay="1800" rotation-per-second="0.55deg" camera-orbit="0deg 75deg 155%" min-camera-orbit="auto auto 145%" max-camera-orbit="auto auto 250%" min-field-of-view="40deg" {...(world.id === 'mars' ? { 'max-field-of-view': '60deg' } : {})} {...(motionAllowed ? { 'auto-rotate': '' } : {})} />
+          <model-viewer ref={planetViewerRef} alt={`${world.modelAlt}. Drag to rotate; scroll or pinch to zoom.`} loading="lazy" reveal="auto" shadow-intensity="0.3" exposure={world.id === 'moon' ? '0.88' : '0.78'} environment-image="neutral" camera-controls touch-action="pan-y" zoom-sensitivity="0.4" interaction-prompt="auto" interaction-prompt-style="basic" interaction-prompt-threshold="2500" auto-rotate-delay="1800" rotation-per-second="0.55deg" camera-orbit="0deg 75deg 155%" min-camera-orbit="auto auto 145%" max-camera-orbit="auto auto 250%" min-field-of-view="40deg" {...(world.id === 'mars' ? { 'max-field-of-view': '60deg' } : {})} {...(motionAllowed ? { 'auto-rotate': '' } : {})} />
           <span className="world-chapter__planet-credit">NASA PLANETARY MODEL · CONTEXT ONLY</span>
         </div>
       </div>

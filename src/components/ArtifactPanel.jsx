@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import LaserRangingExperiment from './LaserRangingExperiment.jsx';
 import InsightMarsquakeExperience from './InsightMarsquakeExperience.jsx';
+import PathfinderScienceReturn from './PathfinderScienceReturn.jsx';
 
 function CreditedImage({ artifact, eager = false }) {
   const imageRef = useRef(null);
@@ -91,6 +92,7 @@ export default function ArtifactPanel({ artifact, onClose, audioController }) {
             <section><h3>What happened</h3><p>{artifact.fate}</p></section>
             <section><h3>Scientific legacy</h3><p>{artifact.significance}</p></section>
           </div>
+          {(artifact.id === 'mars-pathfinder' || artifact.id === 'sojourner') && <PathfinderScienceReturn />}
           {artifact.id === 'apollo-11-reflector' && <LaserRangingExperiment />}
           {artifact.id === 'insight' && <InsightMarsquakeExperience />}
           <section className="source-list" aria-labelledby="source-heading">
