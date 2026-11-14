@@ -31,7 +31,40 @@ const outputs = [
   },
 ];
 
-export default function PathfinderScienceReturn() {
+export default function PathfinderScienceReturn({ artifactId }) {
+  if (artifactId === 'sojourner') {
+    return (
+      <section className="pathfinder-return pathfinder-return--rover" aria-labelledby="sojourner-contribution-title">
+        <div className="pathfinder-return__heading">
+          <p className="explore-eyebrow">ROVER CONTRIBUTION · 1997</p>
+          <h3 id="sojourner-contribution-title">SOJOURNER'S WORK ON MARS</h3>
+          <p>The mobile rover extended Pathfinder's investigation beyond its stationary lander.</p>
+        </div>
+
+        <div className="pathfinder-return__rover-grid">
+          <article>
+            <strong>MOBILITY</strong>
+            <p>Moved across the landing site to investigate nearby rocks and soil.</p>
+          </article>
+          <article>
+            <strong>IMAGING</strong>
+            <p>Used its camera to document the Martian terrain and science targets.</p>
+          </article>
+          <article>
+            <strong>SURFACE SCIENCE</strong>
+            <p>Used the Alpha Proton X-ray Spectrometer (APXS) to examine selected rocks and soil.</p>
+          </article>
+        </div>
+
+        <p className="pathfinder-return__distinction">The mission-wide Pathfinder totals describe the lander and rover together. They are not Sojourner-only statistics.</p>
+        <p className="pathfinder-return__provenance">
+          Sources: <a href="https://apod.nasa.gov/apod/ap970707.html" target="_blank" rel="noreferrer">NASA · Sojourner on Mars <span aria-hidden="true">↗</span></a>
+          {' · '}<a href="https://www-robotics.jpl.nasa.gov/what-we-do/flight-projects/pathfinder/" target="_blank" rel="noreferrer">JPL Robotics · Mars Pathfinder <span aria-hidden="true">↗</span></a>
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section className="pathfinder-return" aria-labelledby="pathfinder-return-title">
       <div className="pathfinder-return__heading">

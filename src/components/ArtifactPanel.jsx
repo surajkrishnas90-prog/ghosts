@@ -92,7 +92,7 @@ export default function ArtifactPanel({ artifact, onClose, audioController }) {
             <section><h3>What happened</h3><p>{artifact.fate}</p></section>
             <section><h3>Scientific legacy</h3><p>{artifact.significance}</p></section>
           </div>
-          {(artifact.id === 'mars-pathfinder' || artifact.id === 'sojourner') && <PathfinderScienceReturn />}
+          {(artifact.id === 'mars-pathfinder' || artifact.id === 'sojourner') && <PathfinderScienceReturn artifactId={artifact.id} />}
           {artifact.id === 'apollo-11-reflector' && <LaserRangingExperiment />}
           {artifact.id === 'insight' && <InsightMarsquakeExperience />}
           <section className="source-list" aria-labelledby="source-heading">
