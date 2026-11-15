@@ -37,9 +37,9 @@ function WorldChapter({ world, motionAllowed }) {
       if (orbit && Number.isFinite(orbit.radius)) zoomStateRef.current.initialRadius = orbit.radius;
     };
 
-    /* model-viewer defines 100% radius as its tight, model-aware framing.
-     * Use that same framing limit for gesture zoom and native camera controls. */
-    const MAX_FILL_RADIUS = '112%';
+    /* Keep the zoom-in limit shared by native camera controls and the
+     * center-zoom gesture so the full globe retains space inside the viewer. */
+    const ZOOM_IN_LIMIT_RADIUS = '135%';
 
     const toggleCenterZoom = (event) => {
       event.preventDefault();
@@ -48,7 +48,7 @@ function WorldChapter({ world, motionAllowed }) {
       if (!orbit || !Number.isFinite(orbit.radius)) return;
       const state = zoomStateRef.current;
       if (state.initialRadius == null) state.initialRadius = orbit.radius;
-      const nextRadius = state.zoomed ? `${state.initialRadius}m` : MAX_FILL_RADIUS;
+      const nextRadius = state.zoomed ? `${state.initialRadius}m` : ZOOM_IN_LIMIT_RADIUS;
       viewer.cameraOrbit = `${orbit.theta}rad ${orbit.phi}rad ${nextRadius}`;
       state.zoomed = !state.zoomed;
     };
@@ -152,7 +152,7 @@ function WorldChapter({ world, motionAllowed }) {
         <div className={`world-chapter__planet${planetFallback ? ' is-fallback' : ''}`} aria-label={`${world.name} globe`}>
           <span className="world-chapter__planet-glow" aria-hidden="true" />
           <span className="world-chapter__planet-fallback" aria-hidden="true"><span>{world.name.toUpperCase()} GLOBE · 3D UNAVAILABLE</span></span>
-          <model-viewer ref={planetViewerRef} alt={`${world.modelAlt}. Drag to rotate; scroll or pinch to zoom.`} loading="lazy" reveal="auto" shadow-intensity="0.3" exposure={world.id === 'moon' ? '0.88' : '0.78'} environment-image="neutral" camera-controls disable-pan disable-tap camera-target="0m 0m 0m" touch-action="pan-y" zoom-sensitivity="1" interaction-prompt="auto" interaction-prompt-style="basic" interaction-prompt-threshold="2500" auto-rotate-delay="1800" rotation-per-second="0.55deg" camera-orbit="0deg 75deg 155%" min-camera-orbit="auto auto 112%" max-camera-orbit="auto auto 155%" field-of-view="45deg" min-field-of-view="45deg" max-field-of-view="45deg" {...(motionAllowed ? { 'auto-rotate': '' } : {})} />
+          <model-viewer ref={planetViewerRef} alt={`${world.modelAlt}. Drag to rotate; scroll or pinch to zoom.`} loading="lazy" reveal="auto" shadow-intensity="0.3" exposure={world.id === 'moon' ? '0.88' : '0.78'} environment-image="neutral" camera-controls disable-pan disable-tap camera-target="0m 0m 0m" touch-action="pan-y" zoom-sensitivity="1" interaction-prompt="auto" interaction-prompt-style="basic" interaction-prompt-threshold="2500" auto-rotate-delay="1800" rotation-per-second="0.55deg" camera-orbit="0deg 75deg 155%" min-camera-orbit="auto auto 135%" max-camera-orbit="auto auto 155%" field-of-view="45deg" min-field-of-view="45deg" max-field-of-view="45deg" {...(motionAllowed ? { 'auto-rotate': '' } : {})} />
           <span className="world-chapter__planet-credit">NASA PLANETARY MODEL · CONTEXT ONLY</span>
         </div>
       </div>
